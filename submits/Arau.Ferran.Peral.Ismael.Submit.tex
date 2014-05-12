@@ -29,23 +29,21 @@ El projecte consisteix en dissenyar i arquitecturar la infraestructura necesàri
 
 El pressupost disponible és de 25 millons d'euros, amb els quals caldrà assumir els costos Capex i Opex. En conseqüència, cal provisionar els servidors de l'aplicació, els equips de xarxa i les cabines de discs. Cal assumir el cost dels serveis de housing, backup, xarxa i electricitat. Possiblement al llarg del projecte es modifiquin alguns d'aquests punts, segons les decisions que es prenguin.
 
-La aplicació web amb la que es treballarà requerirà un model de tràfic vertical entre la plataforma i internet. Principalment amb un ample de banda de pujada de dades molt significatiu. És per aquest motiu, que sembla que caldrà fer un esforç econòmic important en les prestacions de la xarxa.
+La aplicació web amb la que es treballarà requerirà un model de tràfic vertical entre la plataforma i internet. Principalment amb un ample de banda de pujada de dades molt significatiu. És per aquest motiu, cal fer un esforç econòmic important en les prestacions de la xarxa.
 
 
 \section{Requisits}
 
-Els requisits mostren que cal disposar d'una infraestructura en alta disponibilitat i amb capacitat de creixement, és a dir, una infraestructura escalable horitzontalment. També s'estableix una SLA; cal garantir un temps de resposta inferior o igual a 100ms per petició HTTP. El qual significa, que cal servir un mínim de 10 peticions per segon.
+Els requisits mostren que cal disposar d'una infraestructura en alta disponibilitat i amb capacitat de creixement, és a dir, una infraestructura escalable horitzontalment. També s'estableix una SLA; cal garantir un temps de resposta inferior o igual a 100ms per petició HTTP.
 
 Per poder complir els requisits cal desenvolupar una sèrie d'assumpcions, les quals es tractarà que siguin el més realistes possible. En primer lloc, cada petició tindrà un tamany mig de 600 bytes i cada resposta serà en mitjana de 180 KBytes. Cada petició generarà 5 accessos a disc d'un KByte cadascuna.
 
 En quan a l'arquitectura, s'assumirà que l'aplicació no tindrà una capa de Base de Dades. No obstant, sí disposarà d'una capa d'aplicació on s'executarà el codi dinàmic d'aquesta. En l'apartat d'especificació de l'arquitectura es definirà una capa de caching, doncs caldrà assumir el percentatge d'encerts d'aquesta, entre d'altres.
 
-Al llarg del projecte caldrà fer més assumpcions, no obstant, a mesura que es realitzin s'aniran documentant.
-
 
 \section{Arquitectura de la plataforma}
 
-A continuació s'exposa una arquitectura inicial de la plataforma. S'ha tingut en especial consideració l'escalabilitat i l'alta disponibilitat de l'aplicació. És per això que la plataforma consta de diferents nivells desacoblats. Cadascun d'ells ha de funcionar segons els paradigmes de la orientació a serveis en sistemes distribuits, és a dir, cada nivell disposarà de la capacitat d'estar funcionant permanentment i d'escalar de manera independent segons les necessitats. 
+A continuació s'exposa la arquitectura de la plataforma. S'ha tingut en especial consideració l'escalabilitat i l'alta disponibilitat de l'aplicació. És per això que la plataforma consta de diferents nivells desacoblats. Cadascun d'ells ha de funcionar segons els paradigmes de la orientació a serveis en sistemes distribuits, és a dir, cada nivell disposarà de la capacitat d'estar funcionant permanentment i d'escalar de manera independent segons les necessitats. 
 També permet minimitzar l'aparició d'elements que puguin esdevenir un "Single Point of Failure". És a dir, elements que en el cas de fallar, tota la plataforma deixaria de donar servei. Finalment, s’aconsegueix detectar i pal·liar colls d'ampolla.
 
 \begin{figure}[H]
@@ -54,7 +52,7 @@ També permet minimitzar l'aparició d'elements que puguin esdevenir un "Single 
     \caption{Arquitectura \label{fig:centralized}}    
 \end{figure}
 
-S'exposaran en primer lloc les capes que es trobin més a prop d'internet i s'anirà aprofundint.
+S'exposaran en primer lloc les capes que es trobin més a prop del client i s'anirà aprofundint.
 
 En primer lloc, hi ha la capa de balanceig de càrrega o "proxy invers". Aquestes màquines rebran peticions web directament dels clients i les enrutaran cap el següent nivell. Tindran la finalitat de prendre la decissió de quina màquina rebrà la petició web. També seran terminadors SSL; actuaran de firewalls, doncs només enrutaran el tràfic per ports (de nivell 4) legítims, i seran la capa visible de la aplicació a internet.
 
@@ -64,12 +62,10 @@ Amb aquesta decisió s'aconsegueix minimitzar l'espai de disc de les màquines d
 A continuació, hi haurà la capa d'aplicació. Es tracte de nodes que executaran aquelles parts de codi necessaries per desenvolupar la lògica de negoci de l'aplicació. Serà una capa que no tindrà un pes molt important perquè es tracta d'una aplicació amb un ús intensiu en contingut estàtic. No obstant, val a dir que es tractaria d'una capa molt important si l'aplicació web fos d'un altre tipus.
 Com a afegit d'aquesta cap hi haurà un servidor d'índexos que permeti cercar imatges eficientment. Es podria contemplar com una altre capa, però s'ha determinat que és una part poc rellevant de la plataforma. És per això que el indexador no disposarà d'alta disponibilitat.
 
-Finalment hi ha la capa d'emmagatzematge. Constarà de dues parts, en primer lloc una solució de cabina de discs SAN que permetrà crear volums a partir dels discs existents així com afegir més discs. En segon lloc hi haurà els servidors de storage. Un clúster de nfs que serà exportat principalment als Frontals. Les dades cachejades dels Frontals seran originalment d'aquests servidors.
+Finalment hi ha la capa d'emmagatzematge. Constarà de dues parts, en primer lloc una solució de cabina de discs SAN que permetrà crear volums a partir dels discs existents així com afegir més discs. En segon lloc hi haurà els servidors de storage. Un clúster de nfs que serà exportat principalment als Frontals. Les dades en cache dels Frontals seran originalment d'aquests servidors.
 
 
-\section{Workloads}
-
-Actualment el dimensionament de la plataforma no està definit perquè cal determinar una manera adequada de contabilitzar les càrregues que pot assumir la plataforma. No obstant, cada capa haurà de disposar de com a mínim dos nodes per poder garantir l'alta disponibilitat.
+\subsection{Workloads}
 
 Un avantatge pel qual s'han desacoblat les capes en diferents nivells és per poder disposar de diferents prestacions de màquines en els diferents nivells i que cadascun disposi de nodes homogenis. Guanyant en granularitat a l'hora d'escollir components per satisfer els workloads així com minimitzar els costos.
 
@@ -92,7 +88,36 @@ Aquesta capa necesitarà molt d'espai de disc, no necessariament ràpid. Haurà 
 Els càlculs per determinar el rendiment de la plataforma en requests/segon s'han dut a terme tenint en compte el nombre de Herzts que podrien disposar els nodes de cada capa. No obstant, s'han descartat perquè no tenen el rigor que es creu necessari per desenvolupar el projecte. 
 S'ha tractat d'assingar pesos a les diferents capes de la plataforma i així determinar el nombre de nodes per capa. Aquesta solució no ha estat adequada, perquè s'està assumint que les peticions per segon d'una aplicació web vénen determinades per la capacitat de càlcul. Malgrat vàrem fer aquesta assumció, s'ha vist que és errònia. Més si es té en compte que es tracte d'una aplicació intensiva en servir fitxer estàtics.
 
-És per això que s'està cercant la manera de contabilitzar les peticions servides per segon, en funció de les capacitats de la plataforma.
+És per això que s'ha determinat que el factor que determinarà els límits de la plataforma serà l'ample de banda, principalment de pujada, cap a la xarxa externa. S'assumeix que cada màquina pot servir 100Mbps en concepte de respostes web. En conseqüència es determinen el nombre de nodes frontals en funció d'aquests paràmetres. També es crea una relació directa entre el nombre de frontals i la resta de màquines, així com el nombre de racks que caldran. 
+
+
+\subsection{Arquitectura de Xarxa}
+
+La xarxa es composarà de switchos d'"accés" i de switchos de "core". Hi haurà dos switchos de 42 ports 10/100 per cada rack per garantir l'alta disponibilitat tant per un rack com per diferents. Les màquines es conectaran amb una interfície de xarxa a un dels switchos del rack i amb una segona interfície de xarxa al switch del rack contigu. El switchos d'accés estaran conectats a un switch de core. Probablement caldrà aplicar agregació en aquesta capa perquè el tràfic sortint dels racks no sigui un coll d'ampolla. 
+
+El rack que disposi d'una cabina de discs haurà de disposar de més ample de banda que la resta de racks. Per això s'ha pensat en l'opció de  conectar les cabines a un switch de core directament. 
+
+\section{Dimensionament de la plataforma}
+A continuació s'exposa el dimensionament de la plataforma. No obstant, cal tenir en compte que cada capa haurà de disposar de com a mínim dos nodes per poder garantir l'alta disponibilitat.
+
+S'han dut a terme estimacions del cost per unitat de cada un dels elements de la plataforma per disposar d'una estimació inicial de costos d'arquitectura. De moment, no es tenen en compte els costos dels serveis a contractar com ara backups, electricitat, etc. 
+Gràcies a aquestes estimacions es podrà disposar d'una visió de la dimensió de la plataforma. Cal tenir en compte que caldrà garantir els mínims de disponibilitat de CPU per complir amb les SLAs. Els preus definits s'han obtingut de webs de venta oficial. Tot i això es tracte d'una estimació perquè encara no s'han decidit els equips que s'utlitzaran en el centre de dades.
+
+A continuació s'exposen exemples de dos casos. El primer amb un ample de banda de sortida a internet de 10Gbps i el segon amb una sortida de 100Gbps. No obstant, es poden executar més proves si s'escau.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{costs_arc1}
+    \caption{100Gbps \label{fig:centralized}}    
+\end{figure}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{costs_arc2}
+    \caption{10Gbps \label{fig:centralized}}    
+\end{figure}
+
 
 \section{Centre de col·locació}
 
@@ -176,10 +201,23 @@ Per el segon tipus d'atacs, els interns, es necesari fer una auditoria i seguime
 Aquests tipus d'atacs poden suposar una denegació del servei o robatori de dades en cas de que siguin privades.
 
 
-\section{Feines pendents}
-En aquesta entrega hem determinat els riscos que pot tenir el CPD. Hem de determinar nodes i equipament segons l'arquitectura definida, pressupost i els riscos determinats en aquesta entrega.
+\section{Solució de Backup}
 
-En quant al sistema de backup estem contemplant la opció de tenir un CPD replicat en una altra ubicació que mantingui els nodes de xarxes en cas de fallada dels nodes actuals.
+Les solucions de backup facilitades no s'adeqüen a les necessitats del projecte. S'han plantejat els diferents escenaris i s'ha conclòs que el temps de recuperació del servei és massa alt en qualsevol de les propostes. En conseqüència s'ha desenvolupat una solució alternativa. 
+
+La criticitat de les dades del projecte es troba en les dades de les cabines de discs. És per això que es contracta un segon collocation center on s'allotjarà una o varies cabines de discs que disposaran de les dades replicades en temps real. Existirà un període de consistència eventual inevitable degut al temps de propagació dels canvis. En el cas que la capa de storage principal esdevingués inoperativa, els servidors de la capa de Frontals utilitzarien el storage auxiliar com a "backend". 
+
+Aquesta solució és assumible en aquest projecte gràcies al tipus d'aplicació que s'hi allotja. El nombre de escriptures serà molt baix, per tant, la replicació de les dades no serà extramadement costosa. També cal tenir en compte que l'arquitectura de la plataforma està pensada per fer "caching". És a dir, que s'intenta accedir a la capa d'emmagatzemage el menys possible. 
+
+Les característiques tècniques de l'emmagatzematge auxiliar seran inferiors que les de producció. Caldrà que el tamany del "working set" de dades sigui equivalent, però la velocitat d'accés podrà ser inferior. 
+
+
+D'altre banda, la resta de màquines es troben redundades, per tant, la resta de màquines no disposen d'informació no volàtil. Certament hi ha informació especifica de cada tipus de màquina, com configuracions. No obstant, es poden utilitzar solucions de desplegament de màquines mitjançant orquestració. 
+
+
+\section{Feines pendents}
+
+Cal afegir al pressupost els costos derivats de serveis que seran utilitzats com backup i electricitat. Així com concretar els equips que s'utilitzaran per provisionar el projecte. 
 
 \end{document}
 
