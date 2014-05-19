@@ -47,9 +47,9 @@ A continuació s'exposa la arquitectura de la plataforma. S'ha tingut en especia
 També permet minimitzar l'aparició d'elements que puguin esdevenir un "Single Point of Failure". És a dir, elements que en el cas de fallar, tota la plataforma deixaria de donar servei. Finalment, s’aconsegueix detectar i pal·liar colls d'ampolla.
 
 \begin{figure}[H]
-    \centering
-    \includegraphics[width=1.0\textwidth]{IM}
-    \caption{Arquitectura \label{fig:centralized}}    
+    \centering
+    \includegraphics[width=1.0\textwidth]{IM}
+    \caption{Arquitectura \label{fig:centralized}}    
 \end{figure}
 
 S'exposaran en primer lloc les capes que es trobin més a prop del client i s'anirà aprofundint.
@@ -57,12 +57,12 @@ S'exposaran en primer lloc les capes que es trobin més a prop del client i s'an
 En primer lloc, hi ha la capa de balanceig de càrrega o "proxy invers". Aquestes màquines rebran peticions web directament dels clients i les enrutaran cap el següent nivell. Tindran la finalitat de prendre la decissió de quina màquina rebrà la petició web. També seran terminadors SSL; actuaran de firewalls, doncs només enrutaran el tràfic per ports (de nivell 4) legítims, i seran la capa visible de la aplicació a internet.
 
 En segon lloc, hi haurà la capa de "Frontals Web". Aquestes màquines tindran la capacitat de processar la petició web i enrutar aquelles parts que depenguin de codi dinàmic cap a la següent capa. Un cop la següent capa retorni els resultats tindran la capacitat de formatar la presentació de la resposta HTTP. D'altre banda, i com a punt més important, disposaran de gran part del contingut estàtic de l'aplicació. Donat que hi haurà volums molt grans de binaris, s'ha obtat perquè aquesta capa actuï com a cache de disc de les imatges de l'aplicació i del codi estàtic que s'executa al client. Les opciones inicials eren, o bé disposar d'un sistema d'emmagatzematge centralitzat amb totes les imatges o que tots els nodes de la capa disposesin de tots els fitxers estàtics. Donat que es va creure que ambdues eren solucions amb inconvenients insalvables per costos econòmics o per problemes de concurrència, es va optar per la solució de disposar d'alguns fitxers a cada node maximitzant aquells fitxers que més s'utilitzin.
-Amb aquesta decisió s'aconsegueix minimitzar l'espai de disc de les màquines d'aquesta capa, però sense perdre rendiment en quan a latències de xarxa. Val a dir, que permetrà paral·lelitzar l'ample de banda de la xarxa a l'hora d'accedir a les imatges i no saturar la capa d'emmagatzematge. A més a més, permet que l'aplicació escali en capacitat d'usuaris de manera relativament senzilla. Evidentment fins a límits marcats per l'ample de banda de la xarxa de sortida a internet.   
+Amb aquesta decisió s'aconsegueix minimitzar l'espai de disc de les màquines d'aquesta capa, però sense perdre rendiment en quan a latències de xarxa. Val a dir, que permetrà paral·lelitzar l'ample de banda de la xarxa a l'hora d'accedir a les imatges i no saturar la capa d'emmagatzematge. A més a més, permet que l'aplicació escali en capacitat d'usuaris de manera relativament senzilla. Evidentment fins a límits marcats per l'ample de banda de la xarxa de sortida a internet.   
 
 A continuació, hi haurà la capa d'aplicació. Es tracte de nodes que executaran aquelles parts de codi necessaries per desenvolupar la lògica de negoci de l'aplicació. Serà una capa que no tindrà un pes molt important perquè es tracta d'una aplicació amb un ús intensiu en contingut estàtic. No obstant, val a dir que es tractaria d'una capa molt important si l'aplicació web fos d'un altre tipus.
 Com a afegit d'aquesta cap hi haurà un servidor d'índexos que permeti cercar imatges eficientment. Es podria contemplar com una altre capa, però s'ha determinat que és una part poc rellevant de la plataforma. És per això que el indexador no disposarà d'alta disponibilitat.
 
-Finalment hi ha la capa d'emmagatzematge. Constarà de dues parts, en primer lloc una solució de cabina de discs SAN que permetrà crear volums a partir dels discs existents així com afegir més discs (Jbott). En segon lloc hi haurà els servidors de storage, els quals seran dos nodes en clúster de nfs per cada cabina de discs provisionada. Les dades en cache dels Frontals seran originalment d'aquests servidors.
+Finalment hi ha la capa d'emmagatzematge. Constarà de dues parts, en primer lloc una solució de cabina de discs SAN que permetrà crear volums a partir dels discs existents així com afegir més discs (JBOD). En segon lloc hi haurà els servidors de storage, els quals seran dos nodes en clúster de nfs per cada cabina de discs provisionada. Les dades en cache dels Frontals seran originalment d'aquests servidors.
 
 
 \section{Arquitectura de Xarxa}
@@ -71,8 +71,20 @@ La xarxa es composarà de switchos de "top-of-rack" i de switchos de "core". Hi 
 
 Hi haurà quatre switchos de "core", emparellats de dos en dos. Una parella conectarà els racks de frontals amb el router que dóna sortida a internet. També disposaran de conectivitat amb el rack de LoadBalancers. 
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{network1}
+    \caption{Network Frontend \label{fig:centralized}}    
+\end{figure}
+
+
 La segona parella formarà el backbone de l'aplicació. Donaran enllaç entre els servidors d'emmagatezmatge, els d'aplicacions i els frontals. També disposaran de conectivitat amb el centre de dades de backup per facilitar la replicació de les cabines de disc. 
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{network2}
+    \caption{Network Backend \label{fig:centralized}}    
+\end{figure}
 
 \section{Dimensionament de la plataforma}
 
@@ -112,19 +124,26 @@ La provisió de màquines assumeix que s'utilitzaran racks de 42Us tal i com s'i
 \begin{description}
 
 \item[Comunicacions] \hfill \\ 
-    Hi haurà quatre racks de comunicacions de xarxa. Cadascun disposarà d'un switch de "core". Un d'ells també disposarà del router que donarà sortida cap a internet. 
-    
+    Hi haurà quatre racks de comunicacions de xarxa. Cadascun disposarà d'un switch de "core". Un d'ells també disposarà del router que donarà sortida cap a internet. 
+    
 \item[LoadBalancers] \hfill \\
-    Hi haurà un rack de LoadBalancers amb trenta màquines.
+    Hi haurà un rack de LoadBalancers amb trenta màquines.
 
 \item[Frontals] \hfill \\
-    Hi haurà dos-cents nodes allotjats en set racks.
+    Hi haurà dos-cents nodes allotjats en set racks.
 
 \item[Aplicació] \hfill \\
-    Hi haurà vint nodes allotjats en un rack. 
-    
+    Hi haurà vint nodes allotjats en un rack. 
+    
 \item[Emmagatzematge] \hfill \\
-    Hi haurà X racks d'emmagatzematge. Cadascun disposarà de Y clústers de NFS. Cada clúster es composarà d'una cabina de discs i dos nodes de NFS.
+    Hi haurà un rack d'emmagatzematge. Disposarà de quatre clústers de NFS. Cada clúster es composarà d'una cabina de discs i dos nodes de NFS.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Racks}
+    \caption{Definició de racks \label{fig:centralized}}    
+\end{figure}
+
 
 \end{description}
 
@@ -132,17 +151,17 @@ La provisió de màquines assumeix que s'utilitzaran racks de 42Us tal i com s'i
 
 A continuació es defineix els amples de banda que hi haurà entre les capes de l'aplicació. 
 
-    \begin{description}
-        \item[Frontals] \hfill \\
-            La conexió entre els racks dels frontals i els dos switchos de core serà a 30Gbps. Cada node del rack disposarà d'un link de 1Gbps.
-        
-        \item[LoadBalancers] \hfill \\
-        
-        \item[Emmagatzematge] \hfill \\
-            Cada rack estarà enllaçat per un link de 10Gbps amb els switchos de core de backbone.
-            
-    \end{description}
-    
+    \begin{description}
+        \item[Frontals] \hfill \\
+            La conexió entre els racks dels frontals i els dos switchos de core serà a 30Gbps. Cada node del rack disposarà d'un link de 1Gbps.
+        
+        \item[LoadBalancers] \hfill \\
+        
+        \item[Emmagatzematge] \hfill \\
+            Cada rack estarà enllaçat per un link de 10Gbps amb els switchos de core de backbone.
+            
+    \end{description}
+    
 
 \section{Centre de col·locació}
 
@@ -239,10 +258,6 @@ Les característiques tècniques de l'emmagatzematge auxiliar seran inferiors qu
 
 D'altre banda, la resta de màquines es troben redundades, per tant, la resta de màquines no disposen d'informació no volàtil. Certament hi ha informació especifica de cada tipus de màquina, com configuracions. No obstant, es poden utilitzar solucions de desplegament de màquines mitjançant orquestració. 
 
-
-\section{Feines pendents}
-
-Cal afegir al pressupost els costos derivats de serveis que seran utilitzats com backup i electricitat. Així com concretar els equips que s'utilitzaran per provisionar el projecte. 
 
 \end{document}
 
