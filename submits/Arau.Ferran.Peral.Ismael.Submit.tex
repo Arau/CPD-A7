@@ -41,7 +41,7 @@ Per poder complir els requisits cal desenvolupar una sèrie d'assumpcions, les q
 En quan a l'arquitectura, s'assumirà que l'aplicació no tindrà una capa de Base de Dades. No obstant, sí disposarà d'una capa d'aplicació on s'executarà el codi dinàmic d'aquesta. En l'apartat d'especificació de l'arquitectura es definirà una capa de caching, doncs caldrà assumir el percentatge d'encerts d'aquesta, entre d'altres.
 
 
-\section{Arquitectura de la plataforma}
+\section{Arquitectura de sistemes}
 
 A continuació s'exposa la arquitectura de la plataforma. S'ha tingut en especial consideració l'escalabilitat i l'alta disponibilitat de l'aplicació. És per això que la plataforma consta de diferents nivells desacoblats. Cadascun d'ells ha de funcionar segons els paradigmes de la orientació a serveis en sistemes distribuits, és a dir, cada nivell disposarà de la capacitat d'estar funcionant permanentment i d'escalar de manera independent segons les necessitats. 
 També permet minimitzar l'aparició d'elements que puguin esdevenir un "Single Point of Failure". És a dir, elements que en el cas de fallar, tota la plataforma deixaria de donar servei. Finalment, s’aconsegueix detectar i pal·liar colls d'ampolla.
@@ -62,62 +62,87 @@ Amb aquesta decisió s'aconsegueix minimitzar l'espai de disc de les màquines d
 A continuació, hi haurà la capa d'aplicació. Es tracte de nodes que executaran aquelles parts de codi necessaries per desenvolupar la lògica de negoci de l'aplicació. Serà una capa que no tindrà un pes molt important perquè es tracta d'una aplicació amb un ús intensiu en contingut estàtic. No obstant, val a dir que es tractaria d'una capa molt important si l'aplicació web fos d'un altre tipus.
 Com a afegit d'aquesta cap hi haurà un servidor d'índexos que permeti cercar imatges eficientment. Es podria contemplar com una altre capa, però s'ha determinat que és una part poc rellevant de la plataforma. És per això que el indexador no disposarà d'alta disponibilitat.
 
-Finalment hi ha la capa d'emmagatzematge. Constarà de dues parts, en primer lloc una solució de cabina de discs SAN que permetrà crear volums a partir dels discs existents així com afegir més discs. En segon lloc hi haurà els servidors de storage. Un clúster de nfs que serà exportat principalment als Frontals. Les dades en cache dels Frontals seran originalment d'aquests servidors.
+Finalment hi ha la capa d'emmagatzematge. Constarà de dues parts, en primer lloc una solució de cabina de discs SAN que permetrà crear volums a partir dels discs existents així com afegir més discs (Jbott). En segon lloc hi haurà els servidors de storage, els quals seran dos nodes en clúster de nfs per cada cabina de discs provisionada. Les dades en cache dels Frontals seran originalment d'aquests servidors.
 
 
-\subsection{Workloads}
+\section{Arquitectura de Xarxa}
 
-Un avantatge pel qual s'han desacoblat les capes en diferents nivells és per poder disposar de diferents prestacions de màquines en els diferents nivells i que cadascun disposi de nodes homogenis. Guanyant en granularitat a l'hora d'escollir components per satisfer els workloads així com minimitzar els costos.
+La xarxa es composarà de switchos de "top-of-rack" i de switchos de "core". Hi haurà dos switchos de 42 ports Gigabit ethernet per cada rack per garantir l'alta disponibilitat. Les màquines es conectaran amb una interfície de xarxa a un dels switchos del rack i amb una segona interfície de xarxa al switch del rack contigu. El switchos "top-of-rack" estaran conectats a un switch de core. 
 
-Per això, cal determinar el tipus de càrregues que tindrà cada capa. En conseqüència es tractarà de definir les necessitats de cada node idealment.
+Hi haurà quatre switchos de "core", emparellats de dos en dos. Una parella conectarà els racks de frontals amb el router que dóna sortida a internet. També disposaran de conectivitat amb el rack de LoadBalancers. 
 
-\begin{description}
+La segona parella formarà el backbone de l'aplicació. Donaran enllaç entre els servidors d'emmagatezmatge, els d'aplicacions i els frontals. També disposaran de conectivitat amb el centre de dades de backup per facilitar la replicació de les cabines de disc. 
 
-\item[Load Balancers] Únicamnet cal que siguin nodes ràpids a l'hora de fer operacions de I/O de xarxa. Per tant, seran nodes que no necesitaran gaire espai de disc, ni velocitat en aquest.
 
-\item[Frontals] Seran nodes que tindran càrrega de IOPS en forma de sol·licituds de transferència de fitxers. Per tant, caldran màquines amb discs ràpids i espais de memòria prou grans. No obstant, seran nodes amb poca capacitat de càlcul.
-
-\item[Servidors d'aplicacions]
-Seran nodes que tindran principalment capacitat de càlcul. No els caldrà gaire espai de disc.
-
-\item[Emmagatzematge]
-Aquesta capa necesitarà molt d'espai de disc, no necessariament ràpid. Haurà de ser storage robust i disposar d'un ample de banda de xarxa important. Aquests nodes no necesitaran capacitat de càlcul.
-
-\end{description}
+\section{Dimensionament de la plataforma}
 
 Els càlculs per determinar el rendiment de la plataforma en requests/segon s'han dut a terme tenint en compte el nombre de Herzts que podrien disposar els nodes de cada capa. No obstant, s'han descartat perquè no tenen el rigor que es creu necessari per desenvolupar el projecte. 
 S'ha tractat d'assingar pesos a les diferents capes de la plataforma i així determinar el nombre de nodes per capa. Aquesta solució no ha estat adequada, perquè s'està assumint que les peticions per segon d'una aplicació web vénen determinades per la capacitat de càlcul. Malgrat vàrem fer aquesta assumció, s'ha vist que és errònia. Més si es té en compte que es tracte d'una aplicació intensiva en servir fitxer estàtics.
 
-És per això que s'ha determinat que el factor que determinarà els límits de la plataforma serà l'ample de banda, principalment de pujada, cap a la xarxa externa. S'assumeix que cada màquina pot servir 100Mbps en concepte de respostes web. En conseqüència es determinen el nombre de nodes frontals en funció d'aquests paràmetres. També es crea una relació directa entre el nombre de frontals i la resta de màquines, així com el nombre de racks que caldran. 
+És per això que s'ha determinat que el factor que determinarà la quantitat de màquines, equips de xarxa així com la capacitat d'aquests serà l'ample de banda, principalment de pujada, cap a la xarxa externa. S'assumeix que cada màquina pot servir 1Gbps en concepte de respostes web. En conseqüència es determina el nombre de nodes frontals en funció d'aquests paràmetres, la capacitat de càlcul d'aquests i es crea una relació directa entre el nombre de frontals i la resta de màquines. Podent determinar així, el nombre de racks que caldrà provisionar. 
 
+Seguint aquest procediment s'ha plantejat quin ample de banda es vol aconseguir en cada link i posteriorment s'ha especificat la resta de components per garantir aquesta velocitat. 
 
-\subsection{Arquitectura de Xarxa}
+El link de sortida a internet que es vol aconseguir és de 200Gbps.
 
-La xarxa es composarà de switchos d'"accés" i de switchos de "core". Hi haurà dos switchos de 42 ports 10/100 per cada rack per garantir l'alta disponibilitat tant per un rack com per diferents. Les màquines es conectaran amb una interfície de xarxa a un dels switchos del rack i amb una segona interfície de xarxa al switch del rack contigu. El switchos d'accés estaran conectats a un switch de core. Probablement caldrà aplicar agregació en aquesta capa perquè el tràfic sortint dels racks no sigui un coll d'ampolla. 
+\subsection{Requeriments dels nodes}
 
-El rack que disposi d'una cabina de discs haurà de disposar de més ample de banda que la resta de racks. Per això s'ha pensat en l'opció de  conectar les cabines a un switch de core directament. 
+Un avantatge pel qual s'han desacoblat les capes en diferents nivells és per poder disposar de diferents prestacions de màquines en els diferents nivells i que cadascun disposi de nodes homogenis. Guanyant en granularitat a l'hora d'escollir components per satisfer els workloads així com minimitzar els costos.
 
-\section{Dimensionament de la plataforma}
-A continuació s'exposa el dimensionament de la plataforma. No obstant, cal tenir en compte que cada capa haurà de disposar de com a mínim dos nodes per poder garantir l'alta disponibilitat.
+\begin{description}
 
-S'han dut a terme estimacions del cost per unitat de cada un dels elements de la plataforma per disposar d'una estimació inicial de costos d'arquitectura. De moment, no es tenen en compte els costos dels serveis a contractar com ara backups, electricitat, etc. 
-Gràcies a aquestes estimacions es podrà disposar d'una visió de la dimensió de la plataforma. Cal tenir en compte que caldrà garantir els mínims de disponibilitat de CPU per complir amb les SLAs. Els preus definits s'han obtingut de webs de venta oficial. Tot i això es tracte d'una estimació perquè encara no s'han decidit els equips que s'utlitzaran en el centre de dades.
+\item[Load Balancers] \hfill \\
+Cal que siguin nodes ràpids a l'hora de fer operacions de I/O de xarxa. Per tant, seran nodes que no necesitaran gaire espai de disc.
 
-A continuació s'exposen exemples de dos casos. El primer amb un ample de banda de sortida a internet de 10Gbps i el segon amb una sortida de 100Gbps. No obstant, es poden executar més proves si s'escau.
+\item[Frontals] \hfill \\
+Seran nodes que tindran càrrega de IOPS en forma de sol·licituds de transferència de fitxers. Per tant, caldran màquines amb discs ràpids i espais de memòria prou grans. No obstant, seran nodes amb poca capacitat de càlcul. Hauran de satisfer els requisits de la SLA, 100Mhz per petició.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=1.0\textwidth]{costs_arc1}
-    \caption{100Gbps \label{fig:centralized}}    
-\end{figure}
+\item[Servidors d'aplicacions] \hfill \\
+Seran nodes que tindran principalment capacitat de càlcul. No els caldrà gaire espai de disc.
 
+\item[Emmagatzematge] \hfill \\
+Aquesta capa necesitarà molt d'espai de disc, no necessariament ràpid. Haurà de ser storage robust i disposar d'un ample de banda de xarxa important. Aquests nodes no necesitaran capacitat de càlcul.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=1.0\textwidth]{costs_arc2}
-    \caption{10Gbps \label{fig:centralized}}    
-\end{figure}
+\end{description}
 
+\subsection{Racks}
+
+La provisió de màquines assumeix que s'utilitzaran racks de 42Us tal i com s'indica a la documentació del "collocation center".
+
+\begin{description}
+
+\item[Comunicacions] \hfill \\ 
+    Hi haurà quatre racks de comunicacions de xarxa. Cadascun disposarà d'un switch de "core". Un d'ells també disposarà del router que donarà sortida cap a internet. 
+    
+\item[LoadBalancers] \hfill \\
+    Hi haurà un rack de LoadBalancers amb trenta màquines.
+
+\item[Frontals] \hfill \\
+    Hi haurà dos-cents nodes allotjats en set racks.
+
+\item[Aplicació] \hfill \\
+    Hi haurà vint nodes allotjats en un rack. 
+    
+\item[Emmagatzematge] \hfill \\
+    Hi haurà X racks d'emmagatzematge. Cadascun disposarà de Y clústers de NFS. Cada clúster es composarà d'una cabina de discs i dos nodes de NFS.
+
+\end{description}
+
+\subsection{Links de Xarxa}
+
+A continuació es defineix els amples de banda que hi haurà entre les capes de l'aplicació. 
+
+    \begin{description}
+        \item[Frontals] \hfill \\
+            La conexió entre els racks dels frontals i els dos switchos de core serà a 30Gbps. Cada node del rack disposarà d'un link de 1Gbps.
+        
+        \item[LoadBalancers] \hfill \\
+        
+        \item[Emmagatzematge] \hfill \\
+            Cada rack estarà enllaçat per un link de 10Gbps amb els switchos de core de backbone.
+            
+    \end{description}
+    
 
 \section{Centre de col·locació}
 
@@ -220,6 +245,4 @@ D'altre banda, la resta de màquines es troben redundades, per tant, la resta de
 Cal afegir al pressupost els costos derivats de serveis que seran utilitzats com backup i electricitat. Així com concretar els equips que s'utilitzaran per provisionar el projecte. 
 
 \end{document}
-
-
 
