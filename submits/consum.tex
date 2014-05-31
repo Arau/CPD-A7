@@ -1,0 +1,113 @@
+\section{Consum}
+
+El consum es un aspecte difícil de determinar, es un factor depenent de la carrega del maquinari. Tot i així el propòsit d’aquesta secció es recopilar la major informació possible sobre el consum màxim de tots els dispositius pressupostats. Molts dels dispositius no donen informació sobre el seu consum, així que finalment s'han tomat en compte el consum màxim que proveeixen les fonts d'alimentació com a valor de referencia.
+
+\subsection{Consum de potència d'un node}
+
+\begin{description}
+\item[Front - Servidor Frontal Web] \hfill \\
+        \vspace{-5mm}
+        \begin{itemize}[leftmargin=*]
+            \item CPU: 130W
+            \item Memòria: 2,58W x 4 = 10,32W
+            \item Disc: 9,42W
+            \item Chasis: Aprovisonament de \textbf{350W}
+        \end{itemize}
+    
+    \item[LoadBalancer - Servidor Balancejador de Càrrega] \hfill \\
+        \vspace{-5mm}
+        \begin{itemize}[leftmargin=*]
+            \item CPU: 95W
+            \item Memòria: 2,58W x 8 = 20,64W
+            \item Disc: 9,42W
+            \item Chasis: Aprovisonament de \textbf{700W}
+        \end{itemize}
+        
+    \item[App - Servidor d'Aplicació] \hfill \\
+        \vspace{-5mm}
+        \begin{itemize}[leftmargin=*]
+            \item CPU: 20W
+            \item Memòria: 2,58W x 2 = 5,16W
+            \item Disc: 9,42W
+            \item Chasis: Aprovisonament de \textbf{200W}
+        \end{itemize}
+        
+    \item[NFS - Servidor de NFS] \hfill \\
+        \vspace{-5mm}
+        \begin{itemize}[leftmargin=*]
+            \item CPU: 95W
+            \item Memòria: 2,58W x 8 = 20,64W
+            \item Disc: 9,42W
+            \item Chasis: Aprovisonament de \textbf{700W}
+        \end{itemize}
+        
+    \item[JBOD - Caixa de discos] \hfill \\
+        \vspace{-5mm}
+        \begin{itemize}[leftmargin=*]
+            \item Disc: 90 x 9,42W = 847,8W
+            \item Chasis: Aprovisonament de \textbf{2000W}
+        \end{itemize}
+        
+    \item[Switch Front Core] \hfill \\
+        \vspace{-5mm}
+        \begin{itemize}[leftmargin=*]
+            \item Supervisor: 265W
+            \item Chasis: Aprovisionament de \textbf{9000W}
+        \end{itemize}
+        
+    \item[Switch Bottom Core] \hfill \\
+        \vspace{-5mm}
+        \begin{itemize}[leftmargin=*]
+            \item Supervisor: 300W
+            \item Chasis: Aprovisionament de \textbf{6000W}
+        \end{itemize}
+        
+    \item[Switch Top of Rack] \hfill \\
+        \vspace{-5mm}
+        \begin{itemize}[leftmargin=*]
+            \item Chasis: Aprovisionament de \textbf{362W}
+        \end{itemize}
+        
+\end{description}
+
+\subsection{Consum de potència global}
+
+Segons els càlculs realitzats amb el sumatori de potencies de tots els dispositius, el consum de potencia total es de 248,564kW. Aquesta xifra amb l'increment que suposa el PUE 1,15 del Mordor Colocation Center fa un consum de potència total de \textbf{285,8486kW}.
+
+
+\subsection{Consum mensual de les màquines}
+
+\begin{description}
+\item[Nodes de communicació] \hfill \\
+        \vspace{-5mm}
+        \begin{itemize}[leftmargin=*]
+            \item Front Core: 9000W x 2 = 18kW $\rightarrow$  18kW x 720h = \textbf{12,96MWh}
+            \item Bottom Core: 6000W x 2 = 12kW $\rightarrow$  12kW x 720h = \textbf{8,64MWh}
+            \item Top of Rack: 362W x 32 = 11,584kW $\rightarrow$ 11,584 x 720h = \textbf{8,34MWh}
+        \end{itemize}
+        
+        \item[Nodes de computació] \hfill \\
+        \vspace{-5mm}
+        \begin{itemize}[leftmargin=*]
+            \item Frontals: 350W x 400u = 140kW $\rightarrow$  140kW x 720h = \textbf{100,8MWh}
+            \item Balancejador de Carrega: 700W x 60u = 42kW $\rightarrow$  42KW x 720h = \textbf{30,24MWh}
+            \item App: 200W x 20u = 4kW $\rightarrow$  4kW x 720h = \textbf{2,88MWh}
+            \item NFS: 350W x 12u = 4,2kW $\rightarrow$  4,2kW x 720h = \textbf{3,024MWh}
+        \end{itemize}
+        
+        \item[Sistema centralizat de disc] \hfill \\
+        \vspace{-5mm}
+        \begin{itemize}[leftmargin=*]
+            \item JBOD: 2000W x 6u = 12kW $\rightarrow$  12kW x 720h = \textbf{8,64MWh}
+        \end{itemize}
+        
+\end{description}
+
+\subsection{Calor dissipada a màxima potència i a 60\% d'ús}
+
+Podem suposar que l'energia que es disiparà en forma de calor està relacionada amb el 90\% de la potència consumida. Per tant, per una potència màxima consumida de 285,85kW s'hauran de dissipar 257,26J cada segon.
+
+D'altra banda en cas d'estar al 60\% d'ús s'hauran de dissipar 154.36J de calor cada segon.
+
+
+

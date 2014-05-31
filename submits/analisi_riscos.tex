@@ -1,0 +1,56 @@
+\section{Anàlisi de Riscos}
+
+Aquesta secció és un recull de riscos que poden repercutir sobre el centre de procesament de dades.
+
+Es díficil determinar tots els riscos posibles d'una forma acurada i coneixer d'una forma exacta la probabilitat de cadascun. Una bona forma de preparar-se en front a qualsevol risc és dispossar d'un pla de contingència exhaustiu que reculli el major nombre posible de riscos que puguin sorgir i com resoldre'ls correctament; I que paral·lelament, es dugui un control de les accions que es duen a terme per aprendre d'errors i millorar tot el sistema en general. 
+
+Una altra bona praxis per evitar riscos consisteix en possar a prova tots els sistemes del CPD en un moment determinat (en concepte de manteniment) per asegurar-nos que tot els sistemes de seguretat funcionaran correctament.
+
+A la majoría de situacions de risc es díficil de determinar el grau d'afectació que pot suposar. En aquest recull tindrem en suposit els pitjors casos possibles amb l'objectiu de protegirnos al màxim del posible impacte dels mateixos.
+
+\subsection{Fallada al maquinari}
+
+\textbf{(9)} Qualsevol centre de processament de dades de grans dimensions disposa d'una enorme quantitat de maquinari sotmès a problemes al seu funcionament (com per exemple defectes d'origen o deteriorament degut al propi ús). Per tant, no es d'estranyar que les fallades del maquinari es produeixin diversos cops l'any a tot tipus de dispositius o components.
+
+Per aquest motiu la totalitat del equipament que processa o es necessari per el funcionament del servei esta com a mínim duplicat. Gracies a aquesta prevenció es reduirà al maxim la pèrdua de dades i es mantindrà la disponibilitat del servei proporcionat per el CPD. 
+
+L'impacte, a més del cost de instal·lació/reparació del equipament, serà degració del servei o baixada en el rendiment del CPD mentre el node no sigui substituit/reparat i torni a estar completament en funcionament.
+
+\subsection{Fallada al programari}
+\textbf{(0)} Suposem que el risc de fallada dels sistemes és mínim, que tot funciona tal i com s'espera. I que en tot cas l'equip de manteniment de software es capaç de fer les actuacions sense afectar a la pèrdua de la disponibilitat del servei ni a la pèrdua de informació. 
+
+\subsection{Caiguda de la xarxa}
+\textbf{(2)} Els Network Service Providers ofereixen gran fiabilitiat donat el contracte de disponibilitat ofert. Malgrat aquests contractes alguns cops la disponibilitat es veu minvada, ja sigui per la pèrdua del servei o més comunment en forma de petits retards. Per tal de reduir els efectes que pot causar aquest risc el servei de connexió amb l'exterior esta duplicat amb un altre NSP. 
+
+La falta de connexió exterior suposa la perdua de disponibilitat total del servei que ofereix el CPD impacte del qual podría ser grans perdues economiques.
+
+\subsection{Alteració del subministrament elèctric}
+\textbf{(2)} De la mateixa forma que en els NSP, els proveidors de energia elÈctrica solen ser entitats fiables amb les quals es manté un contracte on s'especifica la disponibilitat que ofereix. Tot i així una alteració com una sobretensió o una pèrdua de subministrament pot afectar al funcionament del maquinari. El primer cas pot propiciar la fallada del maquinari i el segon cas pot suposar una pèrdua del servei que ofereix CPD.
+
+Contra aquest risc el colocation center disposa de replicació de l'equipament UPS (N+1) que redueix les afectacions que poden produir l'alteració al subministrament. I en cas de caiguda del subministrament electric disposa de dos linies d'entrada electrica i d'un generador diesel que pot estar en funcionament mentre no es recuperi el servei energetic.
+
+\subsection{Incendi}
+\textbf{(1)} Es poc probable que es produeixi un incendi pero es un risc molt subjecte a la organització dins del col·location center. La empresa contractada ofereix replicació (N+1) de tots els dispositius HVAC per prevenir riscos. Suposarem que el col·location center s'encarrega de monitoritzar les temperatures adequadament.
+
+Aquest risc podría produir deteriorament del maquinari i en el pitjor dels casos perdua de la disponibilitat del servei que proporciona el CPD. 
+
+\subsection{Desastre natural}
+\textbf{(1)} La ubicació "Barcelona" es una cuitat amb un clima estable amb un \% de desastres naturals molt baix. No es descartable que es pugui produir algun fet com terratremols, inundacions i d'altres situacions tot i la baixa probabilitat.
+
+Per aquests casos es important el pla de contingencia i de recuperació. Aixi com que la informació estigui recuperable ja sigui per disposar de copies a un altre lloc segur.
+
+En els pitjors casos si no es disposa d'un altre CPD localitzat en una altra ubicació s'ha d'assumir la pèrdua de disponibilitat del servei. Amb els impactes economics que pot suposar la perdua de servei i la perdua de maquinari fet malbé.
+
+\subsection{Error humà}
+\textbf{(8)} L'error humà continua sent un dels riscos més probables i en consequencia més díficils de preveure. Cal definir un pla de prevenció i de contingència acurats que estableixin una guia per realitzar adecuadament els processos, amb informació de com revertir-los si fos necesari. Paral·lelament cal documentar adequadament en tot moment les accions que es duen a terme.
+
+No es poden evitar els errors humans pero una documentació ben definida pot ajudar a mínimitzar els efectes. El impacte que podría tenir en el pitjor de casos es temps de malfuncionament o sense servei. 
+
+\subsection{Atac}
+\textbf{(9)} Distingim dos tipus d'atacs, d'una banda els provinents de l'exterior com poden ser malware o hackers i d'altra banda provinents de dins de la organització degut al personal intern o personal que pugui tenir contacte amb l'equipament. 
+
+Per el primer tipus d'atacs, els externs, son necessaris elements de control de la xarxa com firewalls, i mantenir un registre de les accions a l'aplicació i als sistemes. 
+
+Per el segon tipus d'atacs, els interns, es necesari fer una auditoria i seguiment de les accions que es duen a terme sobre el CPD per identificar ràpidament la causa, i en cas necesari instal·lació de cameres de seguretat si la empresa de collocation server no ho proporciona.
+
+Aquests tipus d'atacs poden suposar una denegació del servei o robatori de dades en cas de que siguin privades.

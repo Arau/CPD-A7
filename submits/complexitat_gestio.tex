@@ -1,0 +1,11 @@
+\section{Complexitat de Gestió HW/SW}
+
+Per facilitar la gestió de la infraestructura del centre de dades es provisiona un dispositiu "LCD KVM console" model CL5808N \footnote{\textit{\url{http://www.provantage.com/aten-cl5808nckit~7ATEN0LK.htm}}.} de la marca ATEN per cada rack. Es tracta d'una pantalla LCD, conectors VGA, PS2 i USB que permeten conectar-se a la consola del servidor. 
+
+Els servidors s'acostumen a administrar remotament mitjançant conexió SSH. No obstant, cal poder configurar el sistema i la xarxa per poder accedir remotament. Per tant, els dispositius LCD-KVM són molt útils. 
+
+Per gestionar l'electricitat que es subministra als racks i minimitzar el consum d'energia, es provisionen PDUs intel·ligents. Tots els racks disposaran de 2 PDU model AP8853 \footnote{\textit{\url{http://www.senetic.es/product/AP8853}}.} de la marca APC. Aquests dispositius suporten un amperatge de 32A i permeten monitoritzar el consum dels nodes mitjançant Web, SNMP o Telnet.
+
+Els nodes incorporen una interfície IPMI \footnote{\textit{\url{http://en.wikipedia.org/wiki/Intelligent\_Platform\_Management\_Interface}}.} a la placa mare. Els dispositius IPMI permeten gestionar el HW dels servidors de manera remota. Per exemple, permet executar un power on/off remotament. També disposa d'informació de l'estat dels components. Es tracte d'un dispositiu que facilita molt el temps de gestió HW, doncs no cal que els administradors s'hagin de desplaçar al centre de dades. \\
+Les interfícies Ethernet de les controladores IMPI no estan contabilitzades en els ports dels switchos "top-of-rack", ja que es tracta d'interfícies de gestió. S'assumeix que van conectades a un switch de gestió que no ha estat provisionat en el projecte. 
+

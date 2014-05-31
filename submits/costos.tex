@@ -1,0 +1,37 @@
+\section{Costos}
+
+Aquesta proposta de CPD està ajustada al seu pressupost de 25M\euro, els càlculs estimats per la compra de productes i serveis del CPD és de \textbf{24.917.614,33\euro}, en aquesta secció mirarem de desengranar el preu de cada part.
+
+\subsection{Cost per byte}
+
+El servei que proporciona el CPD actualment és de 1080TB efectius d'emmagatzematge, independentment de l'arquitectura que hi ha sota d'aquest espai que es molt superior.
+
+En termes bruts, si considerem el cost actual d'aquets 1080TB en front als 25M\euro el cost per byte és de $25M$\euro$/1.080TB = 23148,15$\euro/TB.
+
+Si parlem en termes de dispositius d'emmagatzematge, el cost per byte de la cabina JBOD és de $44.922$\euro$/360TB = 124,78$\euro/TB. Pero tenint en compte els dispositius mínims necessaris per ampliar 360TB el servei $(2 \times NFS + 1 \times JBOD) \times 2CPD = 114.356$\euro dividit pels 180TB efectius que proporciona degut al RAID al que està sotmés surt resultant un preu equivalent a \textbf{635,31\euro/TB}.
+
+\subsection{Cost per Hz}
+
+La capacitat de càlcul total és de 12960GHz en nodes Front, 1248GHz en nodes Load Balancer, 88GHz en nodes App,  249.6GHz en nodes Nfs. En total són 14545.6GHz disponibles. En termes bruts, el cost per MHz suposa $25.000.000$\euro$/14.545.600MHz = 1,72$\euro/MHz.
+
+Si parlem en termes cost de Mhz per cada node, distingim els 4.693\euro/32,4GHz = 0,145\euro/MHz per node Frontal, els 5.383\euro/20,8GHz = 0,258\euro/MHz, els 1.144\euro/4,4GHz = 0,26\euro/MHz i els  6.128\euro/20,8GHz = 0,295\euro/MHz. En mitjana el cost del MHz és \textbf{0,167\euro/MHz}.
+
+\subsection{Cost elèctric mensual del maquinari}
+
+El cost energètic mensual fa un total de 56.306,28\euro/any per a tots els elements de comunicació i computació a màxima potència, que a més si afegim el consum relatiu als elements del CPD amb el PUE donat el preu total al any es de 64.752,22\euro. 
+
+Aquest cost suposa un preu de \textbf{5.396,01\euro/mes} sobre el total energètic del CPD proposat.
+
+\subsection{Cost del lloguer de línies dedicades}
+
+Es disposa d'un total de 4 canals de 100Gbps que suposen un cost de \textbf{280.000\euro/mes}, que en el període de cinc anys suposa una suma de 16.800.000\euro.
+
+\subsection{Cost del lloguer del centre de col·locació}
+
+El lloguer del centre de col·locació suposa el cost de 14.000\euro/any per cada rack i necessitem disposar de 16 racks per al·locatar tot l'equipament principal. Suposa un cost total de \textbf{18.667\euro/mes} d'aquest equipament el que suposa 1.120.000\euro en cinc anys.
+
+\subsection{Cost del servei de emmagatzematge i backup}
+
+No es disposa un servei de Backup de cap empresa externa, altrament disposem d'un CPD alternatiu amb la informació replicada en temps real. El cost de pressupostat per aquesta infrastructura en 5 anys suposa aproximadament \textbf{3,4M\euro}.
+
+Aquest pressupost preveu 4 línies dedicades de comunicació a 10Gbps (2 al centre principal i 2 al centre de backup) que suposen un cost de 48.000\euro/mensual el que suposa 2.880.000\euro als cinc anys pressupostats; el cost de l'al·locatament i l'electricitat amb 111.315\euro, i el cost de el maquinari necessari per mantenir i rebre la informació 443.733\euro.

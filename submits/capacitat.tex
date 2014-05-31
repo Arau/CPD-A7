@@ -1,0 +1,137 @@
+\section{Capacitat}
+
+\subsection{Aspectes Genèrics}
+
+\begin{description}
+    \item[Xarxa] \hfill \\
+        \vspace{-5mm}
+        \begin{itemize}[leftmargin=*]
+            \item Bi-section bandwith:
+                \begin{description}
+                    \item[Network-Frontend] Hi ha dos switchos que reben dades a 400Gbps i serveixen a deu switchos a 40Gbps cadascun, per tant, 400Gbps. El Bi-section bandwith és de 200Gbps.
+                    \item[Network-Backend] Cada rack de Frontals disposa de 20Gbps d'entrada i facilita al switch de "core-backend" 8Gbps. Per tant, el Bi-section bandwith de entrada és de (20*11)/2 = 110Gbps i el de sortida (8*11)/2 = 44Gbps
+                \end{description}
+            \item Oversubscription rate: els "oversubscription rates" estan definits a l'apartat \ref{sec:links-xarxa}
+        \end{itemize}
+        
+    \item[Emmagatzematge] \hfill \\
+        \vspace{-5mm}
+        \begin{itemize}[leftmargin=*]
+            \item Màxim ample de banda amb discos (agregat) \\
+            Les cabines de discos es connecten a traves de una controladora RAID que rep la informació a un màxim de 6Gbps, tenint en compte que es disposa de 6 Servidors que ofreixen accés a les dades suma un total de \textbf{36Gbps}.
+            \item Capacitat d'emmagatzematge \\
+            Es disposa d'una capacitat total a les cabines de discos de 1080 TB.
+            \item Ratio (MB comprats / MB realment disponibles) \\
+            S'han comprat 2160 TB com a espai físic per emmagatzemar les dades, d'ells es pot accedir a 1080 TB, per tant el ratio és de \textbf{2}
+        \end{itemize}
+        
+    \item[Càlcul] \hfill \\
+        \vspace{-5mm}
+        \begin{itemize}[leftmargin=*]
+            \item FLOPS: \\
+            Una CPU efectua 4 FLOPS per cicle, per tant segons els càlculs sobre els nodes tenim que:\\
+            - Produïts pels FRONTALS són: 400 x 12Cores x 2,7Ghz x 4 F/c = 51,84 TFLOPS.\\
+            - Produïts pels LOAD BALANCERS són: 60 x 8Cores x 2,6Ghz x 4F/c = 4,992 TFLOPS.\\
+            - Produïts pels APP SERVERS són: 20 APP x 2Core x 2,3Ghz x 4F/c = 0,368 TFLOPS.\\
+            - Produïts pels NFS SERVERS són: 12NFS x 8Core x 2,6Ghz x 4F/c = 0,9984 TFLOPS.\\
+            En total la capacitat de càlcul és \textbf{58,1984 TFLOPS}.
+            \item MIPS: \\
+            Els MIPS no es una xifra fàcil d'aconseguir donat que els Data Sheets de Intel no donen la informació apropiadament, si suposem uns 10000MIPS per Core tenint les dades d'un core de Intel amb dades publicades, un Pentium IV a 3,0Ghz de 2003 ja feia 9.726 MIPS. Podem estimar que 400 x 12 + 60 x 8 + 20 x 2 + 12 x 8 = 5416 Total Cores que multiplicat per les MIPS estimades (10000) fa un total de \textbf{54.160.000 MIPS}.
+        \end{itemize}
+
+\end{description}
+
+\subsection{Dades específiques per Workload}
+
+
+Els càlculs per determinar el rendiment de la plataforma en requests/segon es van dur a terme, inicialment, tenint en compte el nombre de Herzts que podrien disposar els nodes de cada capa. No obstant, es van descartar perquè no tenien la representació de la realitat que es creu necessaria per desenvolupar conclusions adequades. 
+
+Es va tractar d'assingar pesos a les diferents capes de la plataforma i així determinar el nombre de nodes per capa. Aquesta solució tampoc va ser adequada perquè s'estava assumint que les peticions per segon d'una aplicació web vénen determinades per la capacitat de càlcul. Malgrat vàrem fer aquesta assumció, s'ha vist que és errònia. Més si es té en compte que es tracte d'una aplicació intensiva en servir fitxers estàtics.
+
+És per això que s'ha decidit que el factor que determinarà la quantitat de màquines, equips de xarxa així com la capacitat d'aquests serà l'ample de banda, principalment de pujada, cap a la xarxa externa. Cada màquina de la capa de Frontals pot servir 1Gbps en concepte de respostes web. En conseqüència es determina el nombre de nodes frontals en funció d'aquests paràmetres, la capacitat de càlcul d'aquests i es crea una relació directa entre el nombre de frontals i la resta de màquines. Podent determinar així, el nombre de racks que caldrà provisionar per cada capa.
+
+Seguint aquest procediment es planteja quin ample de banda es vol aconseguir en cada link i posteriorment s'especifica la resta de components per garantir aquesta velocitat. 
+
+L'enllaç de sortida a internet que es vol aconseguir és de 400Gbps. És a dir, que la plataforma estigui provisionada per servir aquest volum de dades.
+
+
+\subsubsection{Peticions Web per segon}
+
+El nombre de peticions Web per segon està determinat per dos factors. L'ample de banda disponible en els nodes frontals i la potència de les màquines. 
+
+La capacitat de la xarxa és el ample de banda dels nodes Frontals dividit de la quantitat de dades que s'envien per cada petició. Cada node Frontal té un enllaç de 1Gbps, per tant, 1024Mbps. Cada petició requereix de 600Bytes de baixada i 180KByes de pujada. 
+
+Per tant, les peticions per segon que pot assumir un node Frontal són:
+
+\begin{equation}
+   \text{Peticions} = \cfrac{1024
+                            \cfrac{\text{   \tiny{Mbps}  }}
+                                  {\text{   \tiny{s}     }}
+                        }
+                        {1.406
+                            \cfrac{\text{   \tiny{Mb}    }} 
+                                  {\text{   \tiny{req}   }} 
+                        }
+                        = 728.31
+                            \cfrac{\text{   \tiny{req}   }}
+                                  {\text{   \tiny{s}     }}
+\end{equation}
+
+
+On $ 180\text{KB} = 1.406\text{Mb} $
+
+
+D'altre banda, es contabilitza la capacitat que té la capa de LoadBalancers i Frontals per servir peticions, per cada màquina. S'assumeix que un 30\% de la petició es gestiona a la capa de LoadBalancers. 
+
+Per tant, la capacitat de càlcul agregada per ambdos nodes és:
+
+
+\begin{equation}
+    \text{Capacitat de càlcul} = 2.6 \text{ \tiny{GHz}      } \times
+                                   8 \text{ \tiny{cores}    } \times 
+                                 0.3 + 
+                                 2.7 \text{ \tiny{GHz}      } \times 
+                                 12  \text{ \tiny{cores}    } 
+                                 = 38.64 \text{\tiny{GHz}   }
+\end{equation}
+
+
+Cada petició necessita 100MHz per poder ser servida sense demora. Per tant, es divideix la capacitat de càlcul entre els 100MHz i s'obten les peticions concurrents que pot suportar una màquina Frontal (havent descomptat el 30\% del LB). 
+
+\begin{equation}
+    \text{Peticions} = \cfrac { 36640   \text{  \tiny{MHz}  }    }
+                              { 100     \cfrac{\text{   \tiny{MHz}   }}
+                                              {\text{   \tiny{req}   }}
+                              }                                              
+                       = 386.4 \text{  \small{Peticions concurrents}  } 
+\end{equation}
+
+
+A continuació es determinen les peticions per segon que es poden arribar a servir tenint en compte el nombre de peticions concurrents que pot servir un node. Per fer-ho s'assumeix que el temps que necessita una petició per processar-se és de 500ms. Aquesta assumpció s'obte tenint en compte el temps que necessita la màquina per processar la petició i executar cinc operacions de disc de 1KByte cadascuna. En aquest temps no es té en compte el temps que caldria per obtenir una dada del punt de muntatge del NFS. 
+
+Per tant:
+
+\begin{equation}
+   \text{Peticions per Segon} = \cfrac{
+                                    386.4   \text{ \tiny{req}  }   
+                                }
+                                {
+                                    500     \text{ \tiny{ms}  }   
+                                }
+                                \times
+                                \cfrac{
+                                    1000    \text{ \tiny{ms}  }   
+                                }
+                                {
+                                    1       \text{ \tiny{s}  }   
+                                }
+                                = 772.8
+                                    \cfrac{\text{   \tiny{req}   }}
+                                          {\text{   \tiny{s}     }}
+\end{equation}
+
+Es pot observar que les peticions per segon que pot servir una node són superiors que les que pot servir la xarxa. Per tant, el factor limitant de la plataforma és l'ample de banda. No obstant, la sobre provisió de potència de les màquines és molt baixa. Això significa que s'han aprofitat molt els recursos dels que es disposen.
+
+Cal tenir en compte, que el temps de request podria ser més gran el 20\% de les peticions, ja que caldria obtenir les dades del NFS, el qual és més lent que el sistema de fitxers natiu. En aquestes circumstàncies, les dues mètriques utilitzades serien molt iguals.
+
+En conclusió, es poden arribar a servir aproximadament \textbf{728} peticions per segon.

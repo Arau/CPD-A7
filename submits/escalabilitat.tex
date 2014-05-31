@@ -1,0 +1,11 @@
+\section{Escalabilitat}
+
+L'arquitectura del CPD ha estat dissenyada de tal forma que es pugui escalar segons les necessitats del servei. Un exemple, si creix el volum d'usuaris i el sistema ha de processar més peticions web es podría incrementar la quantitat de Frontals en conjunt amb la connexió a internet. Un altre exemple, en cas de requerir més espai d'emmagatzematge es podría incrementar amb nodes de NFS-JBOD
+
+Per no produir colls d'ampolla s'hauria d'incrementar les conexions de xarxa que es vegin afectades introduint switchos necessaris i contractant els requeriments d'internet si es veuen afectats.
+
+Un altre punt a tenir en compte: si el sistema incrementa el seu volum de negoci substancialment seria convenient estudiar la possibilitat de canviar de collocation center per ajustar-lo als nous requisits i intentar estalviar costos.
+
+El sistema de Backup-Mirror allotjat a un altre CPD podria oferir més tipus de node per incrementar si fos necessari la disponibilitat del servei com fan altres organitzacions.
+
+Una altra possibilitat de cara al futur seria substituir switchos que ofereixen conexió Ethernet mitjançant RJ45, per tecnologies més ràpides, probablement els costos d'aquests dispositius es veuran reduits i la substitució esdevindrà recomanada.

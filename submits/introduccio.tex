@@ -1,0 +1,15 @@
+\section{Introducció}
+El projecte consisteix en dissenyar i arquitecturar la infraestructura necesària per allotjar una aplicació web. Concretament es tracta d'una aplicació intensiva en imatges que ha de servir a centenars d'usuaris i ha d'estar disponible 24 hores al dia, 7 dies a la setmana.
+
+El pressupost disponible és de 25 millons d'euros, amb els quals caldrà assumir els costos Capex i Opex. En conseqüència, cal provisionar els servidors de contingut, els equips de xarxa i les cabines de discs. Cal assumir el cost dels serveis de housing, backup, xarxa i electricitat. 
+
+L'aplicació web amb la que es treballarà requerirà un model de tràfic vertical entre la plataforma i internet. Principalment amb un ample de banda de pujada de dades molt significatiu. És per aquest motiu, que cal fer un esforç econòmic important en les prestacions de la xarxa.
+
+
+\section{Requisits}
+
+Els requisits mostren que cal disposar d'una infraestructura en alta disponibilitat i amb capacitat de creixement, és a dir, una infraestructura escalable horitzontalment. També s'estableix una SLA; cal garantir un temps de resposta inferior o igual a 100ms per petició HTTP.
+
+Per poder complir els requisits cal desenvolupar una sèrie d'assumpcions, les quals es tractarà que siguin el més realistes possible. En primer lloc, cada petició tindrà un tamany mig de 600 bytes i cada resposta serà en mitjana de 180 KBytes. Cada petició generarà 5 accessos a disc d'un KByte cadascuna.
+
+En quan a l'arquitectura, s'assumirà que l'aplicació no tindrà una capa de Base de Dades. No obstant, sí disposarà d'una capa d'aplicació on s'executarà el codi dinàmic d'aquesta. En l'apartat d'especificació de l'arquitectura es definirà una capa de caching, doncs caldrà assumir el percentatge d'encerts d'aquesta, entre d'altres.
